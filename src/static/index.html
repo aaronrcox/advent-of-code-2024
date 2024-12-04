@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./tailwind_3.4.15.js"></script>
+    <title>Visualization</title>
+</head>
+<body class="bg-slate-50">
+
+	
+
+    <div class="p-4">
+        <h1 class="text-xl font-bold mb-4">Select a Day</h1>
+        <ul id="days-list" class="mb-4"></ul>
+    </div>
+    
+    <canvas id="canvas" width="800" height="400" style="border: 1px solid black;" class="bg-white"></canvas>
+
+	<div class="p-4">
+		<h1 class="text-lg font-bold mb-4">Console Log Viewer</h1>
+		<pre id="console-log-viewer" class="text-sm" style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto;"></pre>
+	</div>
+
+	<script type="module">
+
+		(function () {
+			// Get the pre element
+			const logViewer = document.getElementById("console-log-viewer");
+
+			// Store the original console methods
+			const originalLog = console.log;
+			const originalClear = console.clear;
+
+			// Override console.log
+			console.log = function (...args) {
+				// Call the original console.log
+				originalLog.apply(console, args);
+
+				// Append log to the log viewer
+				const logEntry = args.map(arg => (typeof arg === "object" ? JSON.stringify(arg, null, 2) : String(arg))).join(" ");
+				if (logViewer) {
+				logViewer.textContent += logEntry + "\n";
+				logViewer.scrollTop = logViewer.scrollHeight; // Auto-scroll to the latest log
+				}
+			};
+
+			// Override console.clear
+			console.clear = function () {
+				// Call the original console.clear
+				originalClear.call(console);
+
+				// Clear the log viewer
+				if (logViewer) {
+				logViewer.textContent = "";
+				}
+			};
+		})();
+
+		
+	</script>
+    
+    <script type="module">
+		import challenges from "./challenges.js";
+        
+
+        const daysList = document.getElementById("days-list");
+
+        // Dynamically populate the list of days and parts
+        challenges.forEach((solution, solutionIndex) => {
+            const listItem = document.createElement("li");
+            const dayText = document.createElement("span");
+            dayText.textContent = `Day ${solution.day}, ${solution.part}: `;
+
+            listItem.appendChild(dayText);
+
+            // Add links for each input file
+            solution.inputs.forEach((input, inputIndex) => {
+                const link = document.createElement("a");
+                link.href = `#${solution.day}/${solution.part}/${inputIndex}`;
+                link.textContent = input.name;
+                link.className = "text-blue-500 hover:underline ml-2";
+                listItem.appendChild(link);
+            });
+
+            daysList.appendChild(listItem);
+        });
+
+        // Handle hash change to load the appropriate script
+        window.addEventListener("hashchange", async () => {
+            const hash = window.location.hash.substring(1); // Remove leading #
+            const [day, part, inputIndex] = hash.split("/");
+
+            if (!day || !part || inputIndex === undefined) return;
+
+            const solution = challenges.find(s => s.day === day && s.part === part);
+            if (!solution) {
+                console.error(`No solution found for Day ${day}, Part ${part}`);
+                return;
+            }
+
+            const input = solution.inputs[parseInt(inputIndex)];
+            if (!input) {
+                console.error(`No input found at index ${inputIndex} for Day ${day}, Part ${part}`);
+                return;
+            }
+
+            console.log(`Loading Day ${day}, Part ${part} with input ${input.name}`);
+            await loadScript(day, part, input.path);
+        });
+
+        async function loadScript(day, part, inputFilePath) {
+			console.clear();
+			stopCurrentAnimation(); // Stop any existing animations
+
+			try {
+				// Dynamically import the module
+				const module = await import(`./challenges/${day}/${part}.js?${Date.now()}`);
+
+				if (module.loadRenderer) {
+					module.loadRenderer(inputFilePath); // Pass the file path to loadRenderer
+					console.log(`Day ${day}, ${part} - Input: ${inputFilePath}`);
+				} else {
+					console.error(`loadRenderer method not found in ${day}/${part}.js`);
+				}
+			} catch (error) {
+				console.error(`Failed to load script for Day ${day}, Part ${part}:`, error);
+			}
+		}
+
+        let currentAnimationFrame = null;
+
+        function stopCurrentAnimation() {
+            if (currentAnimationFrame !== null) {
+                cancelAnimationFrame(currentAnimationFrame);
+                currentAnimationFrame = null;
+            }
+        }
+
+        // Load the initial hash if present
+        if (window.location.hash) {
+            window.dispatchEvent(new Event("hashchange"));
+        }
+    </script>
+</body>
+</html>
