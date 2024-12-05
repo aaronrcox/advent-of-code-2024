@@ -29,7 +29,7 @@ function search(findText: string, input: string[], xPos: number, yPos: number, x
         y += yDir;
     }
     
-    // If we successfully matched all characters, return true
+    // successfully matched all characters
     return true;
 }
 
