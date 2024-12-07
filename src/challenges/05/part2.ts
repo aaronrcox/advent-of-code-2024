@@ -1,4 +1,4 @@
-import { runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
+import { CanvasApp, runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
 import { readFileStr } from "../../utils/input_reader.ts";
 
 export interface ParsedInput {
@@ -46,8 +46,8 @@ function parseInput(input: string): ParsedInput {
     }
 }
 
-function isValidPageNumbers(pageNumbers: number[], beforeRules: { [key: number]: number[] }, afterRules: { [key: number]: number[] }) {
-    let isValid = true;
+function isValidPageNumbers(pageNumbers: number[], beforeRules: { [key: number]: number[] }, afterRules: { [key: number]: number[] }) : { isValid: boolean, aIndex: number, bIndex: number} {
+    
     for(let i=0; i<pageNumbers.length; i++) {
 
         const a = pageNumbers[i];
@@ -57,17 +57,13 @@ function isValidPageNumbers(pageNumbers: number[], beforeRules: { [key: number]:
             
             const b = pageNumbers[j];
 
-            if( afterRules[b] !== undefined && afterRules[b].includes(a)) {
-                isValid = false;
-            }
-
-            if( beforeRules[a] !== undefined && beforeRules[a].includes(b)) {
-                isValid = false;
+            if( (afterRules[b] !== undefined && afterRules[b].includes(a)) || (beforeRules[a] !== undefined && beforeRules[a].includes(b)) ) {
+                return {isValid: false, aIndex: i, bIndex: j};
             }
         }
     }
 
-    return isValid;
+    return {isValid: true, aIndex: -1, bIndex: -1};
 }
 
 
@@ -81,44 +77,28 @@ export async function* solver(filePath: string): AsyncGenerator<Day05P2RenderDat
     // process each collection of pageNumbers to check if valid
     for(const update of parsedInput.updates) {
 
-        // assume it's valid until there is a rule that fails
-        update.isValid = isValidPageNumbers(update.pageNumbers, parsedInput.beforeRules, parsedInput.afterRules);
+        // check if the numbers are valid
+        update.isValid = isValidPageNumbers(update.pageNumbers, parsedInput.beforeRules, parsedInput.afterRules).isValid;
 
         if(update.isValid)
             continue;
         
+        // copy the numbers to a new 'correctedPageNumbers' array - we will modify the new array to correct the order
         update.correctedPageNumbers = [...update.pageNumbers];
 
         let retry = false;
         do {
-            retry = false;
+            const {isValid, aIndex, bIndex} = isValidPageNumbers(update.correctedPageNumbers!, parsedInput.beforeRules, parsedInput.afterRules);
+            retry = !isValid;
 
-            for(let i=0; i<update.correctedPageNumbers.length; i++) {
-
-                const a = update.correctedPageNumbers[i];
-
-                for(let j=i+1; j<update.correctedPageNumbers.length; j++) {
-                
-                    const b = update.correctedPageNumbers[j];
-    
-                    if( (parsedInput.afterRules[b] !== undefined && parsedInput.afterRules[b].includes(a)) || (parsedInput.beforeRules[a] !== undefined && parsedInput.beforeRules[a].includes(b))) {
-                        retry = true;
-                        // swap the numbers
-                        const tmp = update.correctedPageNumbers[i];
-                        update.correctedPageNumbers[i] = update.correctedPageNumbers[j];
-                        update.correctedPageNumbers[j] = tmp;
-                        break;
-                    }
-    
-                }
-
-                if(retry) {
-                    break;
-                }          
+            if(retry) {
+                // swap the values at aIndex and bIndex
+                const temp = update.correctedPageNumbers![aIndex];
+                update.correctedPageNumbers![aIndex] = update.correctedPageNumbers![bIndex];
+                update.correctedPageNumbers![bIndex] = temp;
             }
+
         } while(retry);
-
-
     }
 
 
@@ -140,12 +120,15 @@ export function loadRenderer(filepath: string) {
     runSolverWithAnimationFrame(solverSolutionStep, renderFrame);
 }
 
-function renderFrame(context: CanvasRenderingContext2D, data: Day05P2RenderData): void {
+function renderFrame(app: CanvasApp, data: Day05P2RenderData): void {
 
-    // Clear the canvas
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    if(data === undefined || data == null) {
+        return;
+    }
 
-    // Render message
-    context.fillStyle = "black";
-    context.fillText(data.output, 10, 20);
+    const renderer = app.renderer;
+    renderer.clear();
+    renderer.drawText(data.output, 10, 20, "Arial", 16, "left", "top", "black");
+
 }
+

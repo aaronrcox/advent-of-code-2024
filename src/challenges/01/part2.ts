@@ -1,4 +1,4 @@
-import { runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
+import { CanvasApp, runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
 import { readFileStr } from "../../utils/input_reader.ts";
 
 export interface Day01P2RenderData {
@@ -47,12 +47,10 @@ export function loadRenderer(filepath: string) {
     runSolverWithAnimationFrame(solverSolutionStep, renderFrame);
 }
 
-function renderFrame(context: CanvasRenderingContext2D, data: Day01P2RenderData): void {
+function renderFrame(app: CanvasApp, data: Day01P2RenderData): void {
 
-    // Clear the canvas
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    const renderer = app.renderer;
+    renderer.clear();
+    renderer.drawText(data.output, 10, 20, "Arial", 16, "left", "top", "black");
 
-    // Render message
-    context.fillStyle = "black";
-    context.fillText(data.output, 10, 20);
 }

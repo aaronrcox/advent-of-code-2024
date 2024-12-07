@@ -1,7 +1,7 @@
-import { runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
+import { CanvasApp, runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
 import { readFileStr } from "../../utils/input_reader.ts";
 
-export interface Day04P1RenderData {
+export interface Day04P2RenderData {
     output: string;
 }
 
@@ -34,9 +34,9 @@ function search(findText: string, input: string[], xPos: number, yPos: number, x
 }
 
 
-export async function* solver(filePath: string): AsyncGenerator<Day04P1RenderData> {
+export async function* solver(filePath: string): AsyncGenerator<Day04P2RenderData> {
 
-    const data: Day04P1RenderData = { output: "" };
+    const data: Day04P2RenderData = { output: "" };
 
     const input = await readFileStr(filePath);
     const parsedInput = parseInput(input);
@@ -71,12 +71,16 @@ export function loadRenderer(filepath: string) {
     runSolverWithAnimationFrame(solverSolutionStep, renderFrame);
 }
 
-function renderFrame(context: CanvasRenderingContext2D, data: Day04P1RenderData): void {
 
-    // Clear the canvas
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+function renderFrame(app: CanvasApp, data: Day04P2RenderData): void {
 
-    // Render message
-    context.fillStyle = "black";
-    context.fillText(data.output, 10, 20);
+    if(data === undefined || data == null) {
+        return;
+    }
+
+    const renderer = app.renderer;
+    renderer.clear();
+    renderer.drawText(data.output, 10, 20, "Arial", 16, "left", "top", "black");
+
 }
+

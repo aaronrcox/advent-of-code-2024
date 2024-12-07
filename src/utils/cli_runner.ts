@@ -16,9 +16,11 @@ export async function runChallenge(day: string, part: string, inputFile?: string
         const { solver } = await import(challengePath);
         const solverGenerator = solver(inputFilePath);
 
+        let out;
         for await (const output of solverGenerator) {
-            console.log(output);
+            out = output;
         }
+        console.log(out);
     } catch (error) {
         handleRunError(day, part, error);
         Deno.exit(1);

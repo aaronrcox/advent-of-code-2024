@@ -1,4 +1,4 @@
-import { runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
+import { CanvasApp, runSolverWithAnimationFrame } from "../../utils/browser_renderer.ts";
 import { readFileStr } from "../../utils/input_reader.ts";
 
 export interface ParsedInput {
@@ -103,12 +103,14 @@ export function loadRenderer(filepath: string) {
     runSolverWithAnimationFrame(solverSolutionStep, renderFrame);
 }
 
-function renderFrame(context: CanvasRenderingContext2D, data: Day05P1RenderData): void {
+function renderFrame(app: CanvasApp, data: Day05P1RenderData | undefined): void {
 
-    // Clear the canvas
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    if(data === undefined || data == null) {
+        return;
+    }
 
-    // Render message
-    context.fillStyle = "black";
-    context.fillText(data.output, 10, 20);
+    const renderer = app.renderer;
+    renderer.clear();
+    renderer.drawText(data.output, 10, 20, "Arial", 16, "left", "top", "black");
+
 }

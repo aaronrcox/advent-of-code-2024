@@ -15,12 +15,23 @@
         <ul id="days-list" class="mb-4"></ul>
     </div>
     
-    <canvas id="canvas" width="800" height="400" style="border: 1px solid black;" class="bg-white"></canvas>
+    <canvas id="canvas" width="1200" height="1200" style="border: 1px solid black;" class="bg-white"></canvas>
+
+    <div class="flex items-center justify-center mt-4">
+        <button id="playPauseButton" class="mx-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <span id="playPauseIcon" class="material-icons">play_arrow</span>
+        </button>
+        <button id="nextButton" class="mx-2 p-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50" disabled>
+          <span class="material-icons">skip_next</span>
+        </button>
+      </div>
 
 	<div class="p-4">
 		<h1 class="text-lg font-bold mb-4">Console Log Viewer</h1>
 		<pre id="console-log-viewer" class="text-sm" style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto;"></pre>
 	</div>
+
+    
 
 	<script type="module">
 

@@ -1,6 +1,7 @@
 
 # Advent of Code - 2024
 This year I'll be completing the advent of code challenges using typescript and Deno.
+Each day's challenges is progressavelly more difficult than the last
 
 The advent of code challenges are created by Eric Wastl - learn more: https://adventofcode.com/2024/about
 
